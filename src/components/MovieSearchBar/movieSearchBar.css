@@ -1,0 +1,18 @@
+.movie-search-bar {
+	width: 938px;
+	margin: 5px 36px;
+	padding: 10px;
+	font-family: Inter;
+	font-size: 16px;
+	line-height: 22px;
+	border-radius: 5px;
+	box-sizing: border-box;
+	border: 2px solid #d9d9d9;
+	align-items: center;
+ }
+ 
+ .movie-search-bar:focus,
+ .movie-search-bar:active {
+	outline: none;
+	border: 2px solid #505050;
+ }

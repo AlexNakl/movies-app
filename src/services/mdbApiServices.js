@@ -16,7 +16,7 @@ export default class MdbApiServices {
     if (body.results.length === 0) {
       throw new Error();
     }
-    console.log(body.results);
-    return body.results;
+    console.log(body);
+    return body;
   }
 }
