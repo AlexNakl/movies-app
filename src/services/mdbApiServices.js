@@ -16,7 +16,6 @@ export default class MdbApiServices {
     if (body.results.length === 0) {
       throw new Error();
     }
-    console.log(body);
     return body;
   }
 
@@ -49,7 +48,6 @@ export default class MdbApiServices {
     }
 
     const body = await response.json();
-    console.log(body);
     return body;
   }
 
@@ -62,7 +60,6 @@ export default class MdbApiServices {
     }
 
     const body = await response.json();
-    console.log(body.genres);
     return body.genres;
   }
 
