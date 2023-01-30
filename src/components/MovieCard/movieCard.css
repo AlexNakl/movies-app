@@ -1,13 +1,15 @@
 .wraper-card{
 	display: flex;
 	height: 280px;
-	width: 454px;
+	width: 460px;
 	box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
 }
 
 .img-container{
 	min-height: 280px;
+	max-height: 280px;
 	min-width: 187px;
+	max-width: 187px;
 }
 
 .img-container img{
@@ -16,15 +18,64 @@
 }
 
 .movie-info{
-	margin: 15px 20px;
+	margin: 15px 0px 15px 18px;
+	display: flex;
+   flex-direction: column;
+   justify-content: space-between;
+}
+
+.wraper-movie-info{
+	margin-right: 10px;
+}
+
+.wraper-title{
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 10px;
 }
 
 .movie-title{
-	margin-bottom: 10px;
 	font-weight: 500;
 	font-size: 20px;
 	line-height: 26px;
 }
+
+.movie-average {
+	display: flex;
+	min-width: 34px;
+	min-height: 34px;
+	align-self: start;
+	border-radius: 50%;
+	align-items: center;
+	margin-left: 10px;
+	border: 2px solid #000;
+	justify-content: center;
+ }
+ 
+ .movie-average__border-rad {
+	border-color: #e90000;
+ }
+ 
+ .movie-average__border-orange {
+	border-color: #e97e00;
+ }
+ 
+ .movie-average__border-yellow {
+	border-color: #e9d100;
+ }
+ 
+ .movie-average__border-green {
+	border-color: #66e900;
+ }
+ 
+ .movie-average p {
+	margin: 0;
+	height: 100%;
+	font-size: 12px;
+	font-weight: 700;
+	line-height: 22px;
+ }
 
 .movie-release-date{
 	color: #827E7E;
@@ -34,11 +85,12 @@
 }
 
 .movie-overview{
-	width: 228px;
+	margin: 0;
 }
 
 .movie-genres{
 	display: flex;
+	flex-wrap: wrap;
 	gap: 8px;
 	margin-bottom: 10px;
 }
@@ -52,3 +104,40 @@
 	color: rgba(0, 0, 0, 0.65);
 }
 
+.movie-rate {
+	display: flex;
+	justify-content: flex-start;
+ }
+
+ @media (max-width: 1010px) {
+	.wraper-card{
+		height: 245px;
+		width: 388px;
+		padding: 6px 10px 12px;
+	}
+	.img-container{
+		min-height: 91px;
+		max-height: 91px;
+		min-width: 60px;
+		max-width: 60px;
+	}
+	.movie-info{
+		margin: 0;
+		margin-left: 13px;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		width: 316px;
+	}
+	.wraper-movie-info{
+		margin-right: 0;
+	}
+	.movie-rate {
+		justify-content: flex-end;
+	 }
+	 .movie-overview{
+		position: absolute;
+		margin-left: -73px;
+		max-width: 330px;
+	 }
+ }

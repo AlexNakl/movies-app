@@ -9,8 +9,8 @@
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: space-between;
-	gap: 30px;
-	padding: 20px 36px;
+	gap: 25px;
+	padding: 20px 30px;
 }
 
 .paginator {
@@ -18,3 +18,28 @@
 	justify-content: center;
 	padding-bottom: 20px;
 }
+
+.movie-app .ant-tabs-nav-wrap{
+	justify-content: center;
+}
+
+@media (max-width: 1010px) {
+	.movie-app {
+		max-width: 420px;
+	}
+
+	.movie-content{
+		gap: 20px;
+		padding: 10px 16px;
+	}
+      
+	.ant-pagination{
+		text-align: center;
+	}
+	.paginator {
+		padding-top: 10px;
+	}
+	.ant-pagination-options-quick-jumper{
+		margin-top: 5px;
+	}
+ }

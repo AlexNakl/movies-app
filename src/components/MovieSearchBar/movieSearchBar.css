@@ -1,6 +1,6 @@
 .movie-search-bar {
-	width: 938px;
-	margin: 5px 36px;
+	width: 950px;
+	margin: 5px 30px;
 	padding: 10px;
 	font-family: Inter;
 	font-size: 16px;
@@ -15,4 +15,11 @@
  .movie-search-bar:active {
 	outline: none;
 	border: 2px solid #505050;
+ }
+
+ @media (max-width: 1010px) {
+	.movie-search-bar  {
+		width: 388px;
+		margin: 5px 16px;
+	}
  }

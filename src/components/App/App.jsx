@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import './app.css';
+import { Tabs } from 'antd';
 
 import MoviesList from '../MoviesList';
 import Spinner from '../Spinner';
@@ -7,94 +8,221 @@ import ErrorIndicator from '../ErrorIndicator';
 import MovieSearchBar from '../MovieSearchBar';
 import Paginator from '../Pagination';
 import MdbApiServices from '../../services/mdbApiServices';
+import { MdbapiServiceProvider } from '../../context/mdbApi-service-context';
 
 export default class App extends Component {
   constructor() {
     super();
     this.MdbApi = new MdbApiServices();
     this.state = {
-      moviesData: [],
-      loading: false,
-      error: false,
-      errorText: 'Your query returned no results. Please change your search criteria and try again.',
-      query: '',
-      usePage: 1,
-      totalResults: 0,
+      searchMoviesData: [],
+      rateMoviesData: [],
+      searchLoading: false,
+      rateLoading: false,
+      searchError: false,
+      rateError: false,
+      searchUsePage: 1,
+      rateUsePage: 1,
+      searchTotalResults: 0,
+      rateTotalResults: 0,
+      searchErrorText: '',
+      rateErrorText: '',
+      searchQuery: '',
+      allGenres: {},
     };
   }
 
+  componentDidMount() {
+    this.MdbApi.createGuestSession();
+    this.MdbApi.getGenres().then((res) => {
+      const genresObj = {};
+
+      res.forEach((obj) => {
+        genresObj[obj.id] = obj.name;
+      });
+      this.setState({
+        allGenres: genresObj,
+      });
+    });
+  }
+
   componentDidUpdate(prevProps, prevState) {
-    const { query, usePage } = this.state;
-    if (query !== prevState.query || usePage !== prevState.usePage) {
+    const { searchQuery, searchUsePage } = this.state;
+    if (searchQuery !== prevState.searchQuery || searchUsePage !== prevState.searchUsePage) {
       this.MdbApi.getResources(
-        `&language=en-US&page=1&include_adult=false&query=${encodeURIComponent(query)}&page=${usePage}`
+        `&language=en-US&page=1&include_adult=false&query=${encodeURIComponent(searchQuery)}&page=${searchUsePage}`
       )
         .then((body) => {
           this.setState({
-            moviesData: body.results,
-            loading: false,
-            totalResults: body.total_results,
+            searchMoviesData: body.results,
+            searchLoading: false,
+            searchTotalResults: body.total_results,
           });
         })
-        .catch(this.onError);
+        .catch(this.onSearchError);
     }
   }
 
-  onError = (err) => {
+  onSearchError = (err) => {
     if (err.message === 'Failed to fetch') {
       this.setState({
-        errorText: 'Check your internet connection.',
+        searchErrorText: 'Check your internet connection.',
       });
     } else {
       this.setState({
-        errorText: 'Your query returned no results. Please change your search criteria and try again.',
+        searchErrorText: 'Your query returned no results. Please change your search criteria and try again.',
       });
     }
 
     this.setState({
-      error: true,
-      loading: false,
+      searchError: true,
+      searchLoading: false,
+    });
+  };
+
+  onRateError = (err) => {
+    if (err.message === 'Failed to fetch') {
+      this.setState({
+        rateErrorText: 'Check your internet connection.',
+      });
+    } else {
+      this.setState({
+        rateErrorText: 'Sorry. Something went wrong.',
+      });
+    }
+    this.setState({
+      rateError: true,
+      rateLoading: false,
     });
   };
 
   createRequest = (text) => {
     this.setState({
-      query: text,
-      error: false,
-      loading: true,
-      usePage: 1,
+      searchQuery: text,
+      searchError: false,
+      searchLoading: true,
+      searchUsePage: 1,
     });
   };
 
-  changePage = (newPage) => {
+  changeSearchPage = (newPage) => {
     this.setState({
-      usePage: newPage,
-      loading: true,
+      searchUsePage: newPage,
+      searchLoading: true,
     });
+  };
+
+  changeRatePage = (newPage) => {
+    this.MdbApi.getGuestSession(`&language=en-US&sort_by=created_at.asc&page=${newPage}`)
+      .then((body) => {
+        this.setState({
+          rateMoviesData: body.results,
+          rateLoading: false,
+          rateTotalResults: body.total_results,
+        });
+      })
+      .catch(this.onRateError);
+
+    this.setState({
+      rateUsePage: newPage,
+      rateLoading: true,
+    });
+  };
+
+  onChangeTabs = (activeKey) => {
+    const { rateUsePage } = this.state;
+    if (activeKey === '2') {
+      this.MdbApi.getGuestSession(`&language=en-US&sort_by=created_at.asc&page=${rateUsePage}`)
+        .then((body) => {
+          this.setState({
+            rateMoviesData: body.results,
+            rateLoading: false,
+            rateTotalResults: body.total_results,
+            rateUsePage: body.page,
+          });
+        })
+        .catch(this.onRateError);
+      this.setState({
+        rateLoading: true,
+      });
+    }
   };
 
   render() {
-    const { moviesData, loading, error, errorText, usePage, totalResults } = this.state;
+    const {
+      searchMoviesData,
+      searchLoading,
+      searchError,
+      searchUsePage,
+      searchTotalResults,
+      rateMoviesData,
+      rateLoading,
+      rateError,
+      rateUsePage,
+      rateTotalResults,
+      searchQuery,
+      searchErrorText,
+      rateErrorText,
+      allGenres,
+    } = this.state;
 
-    const hasData = !(loading || error);
-    const showPagin = moviesData.length !== 0 && hasData;
+    const searchHasData = !(searchLoading || searchError);
+    const searchShowPagin = searchMoviesData.length !== 0 && searchHasData;
 
-    const errorBox = error ? <ErrorIndicator errorText={errorText} /> : null;
-    const spinner = loading ? <Spinner /> : null;
-    const content = hasData ? <MoviesList moviesData={moviesData} /> : null;
-    const pagin = showPagin ? (
-      <Paginator usePage={usePage} totalResults={totalResults} onChangePage={this.changePage} />
+    const rateHasData = !(rateLoading || rateError);
+    const rateShowPagin = rateMoviesData.length !== 0 && rateHasData;
+
+    const searchErrorBox = searchError ? <ErrorIndicator errorText={searchErrorText} /> : null;
+    const searchSpinner = searchLoading ? <Spinner /> : null;
+    const searchContent = searchHasData ? <MoviesList moviesData={searchMoviesData} allGenres={allGenres} /> : null;
+    const searchPagin = searchShowPagin ? (
+      <Paginator usePage={searchUsePage} totalResults={searchTotalResults} onChangePage={this.changeSearchPage} />
     ) : null;
+
+    const rateErrorBox = rateError ? <ErrorIndicator errorText={rateErrorText} /> : null;
+    const rateSpinner = rateLoading ? <Spinner /> : null;
+    const rateContent = rateHasData ? <MoviesList moviesData={rateMoviesData} allGenres={allGenres} /> : null;
+    const ratePagin = rateShowPagin ? (
+      <Paginator usePage={rateUsePage} totalResults={rateTotalResults} onChangePage={this.changeRatePage} />
+    ) : null;
+
+    const items = [
+      {
+        key: '1',
+        label: 'Search',
+        children: (
+          <>
+            <MovieSearchBar createRequest={this.createRequest} query={searchQuery} />
+            <div className="movie-content">
+              {searchSpinner}
+              {searchErrorBox}
+              {searchContent}
+            </div>
+            <div className="paginator">{searchPagin}</div>
+          </>
+        ),
+      },
+      {
+        key: '2',
+        label: 'Rated',
+        children: (
+          <>
+            <div className="movie-content">
+              {rateSpinner}
+              {rateErrorBox}
+              {rateContent}
+            </div>
+            <div className="paginator">{ratePagin}</div>
+          </>
+        ),
+      },
+    ];
 
     return (
       <section className="movie-app">
-        <MovieSearchBar createRequest={this.createRequest} />
-        <div className="movie-content">
-          {spinner}
-          {errorBox}
-          {content}
-        </div>
-        <div className="paginator">{pagin}</div>
+        <MdbapiServiceProvider value={this.MdbApi}>
+          <Tabs defaultActiveKey="1" items={items} onChange={(activeKey) => this.onChangeTabs(activeKey)} />
+        </MdbapiServiceProvider>
       </section>
     );
   }

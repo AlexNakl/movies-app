@@ -1,3 +1,3 @@
-import shortenText from './helpers';
+import { shortenText, getClassNameForAverage } from './helpers';
 
-export default shortenText;
+export { shortenText, getClassNameForAverage };

@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Pagination } from 'antd';
 
 function Paginator({ usePage, totalResults, onChangePage }) {
@@ -13,4 +14,17 @@ function Paginator({ usePage, totalResults, onChangePage }) {
     />
   );
 }
+
+Paginator.defaultProps = {
+  usePage: 1,
+  totalResults: 0,
+  onChangePage: () => {},
+};
+
+Paginator.propTypes = {
+  usePage: PropTypes.number,
+  totalResults: PropTypes.number,
+  onChangePage: PropTypes.func,
+};
+
 export default Paginator;
