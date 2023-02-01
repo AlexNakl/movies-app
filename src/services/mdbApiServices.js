@@ -60,7 +60,12 @@ export default class MdbApiServices {
     }
 
     const body = await response.json();
-    return body.genres;
+    const genresObj = {};
+
+    body.genres.forEach((obj) => {
+      genresObj[obj.id] = obj.name;
+    });
+    return genresObj;
   }
 
   rateMovie = (movieId, rating) => {

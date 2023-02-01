@@ -35,13 +35,8 @@ export default class App extends Component {
   componentDidMount() {
     this.MdbApi.createGuestSession();
     this.MdbApi.getGenres().then((res) => {
-      const genresObj = {};
-
-      res.forEach((obj) => {
-        genresObj[obj.id] = obj.name;
-      });
       this.setState({
-        allGenres: genresObj,
+        allGenres: res,
       });
     });
   }
@@ -172,56 +167,60 @@ export default class App extends Component {
     const rateHasData = !(rateLoading || rateError);
     const rateShowPagin = rateMoviesData.length !== 0 && rateHasData;
 
-    const searchErrorBox = searchError ? <ErrorIndicator errorText={searchErrorText} /> : null;
-    const searchSpinner = searchLoading ? <Spinner /> : null;
-    const searchContent = searchHasData ? <MoviesList moviesData={searchMoviesData} allGenres={allGenres} /> : null;
-    const searchPagin = searchShowPagin ? (
-      <Paginator usePage={searchUsePage} totalResults={searchTotalResults} onChangePage={this.changeSearchPage} />
-    ) : null;
-
-    const rateErrorBox = rateError ? <ErrorIndicator errorText={rateErrorText} /> : null;
-    const rateSpinner = rateLoading ? <Spinner /> : null;
-    const rateContent = rateHasData ? <MoviesList moviesData={rateMoviesData} allGenres={allGenres} /> : null;
-    const ratePagin = rateShowPagin ? (
-      <Paginator usePage={rateUsePage} totalResults={rateTotalResults} onChangePage={this.changeRatePage} />
-    ) : null;
-
-    const items = [
-      {
-        key: '1',
-        label: 'Search',
-        children: (
-          <>
-            <MovieSearchBar createRequest={this.createRequest} query={searchQuery} />
-            <div className="movie-content">
-              {searchSpinner}
-              {searchErrorBox}
-              {searchContent}
-            </div>
-            <div className="paginator">{searchPagin}</div>
-          </>
-        ),
-      },
-      {
-        key: '2',
-        label: 'Rated',
-        children: (
-          <>
-            <div className="movie-content">
-              {rateSpinner}
-              {rateErrorBox}
-              {rateContent}
-            </div>
-            <div className="paginator">{ratePagin}</div>
-          </>
-        ),
-      },
-    ];
-
     return (
       <section className="movie-app">
         <MdbapiServiceProvider value={this.MdbApi}>
-          <Tabs defaultActiveKey="1" items={items} onChange={(activeKey) => this.onChangeTabs(activeKey)} />
+          <Tabs
+            defaultActiveKey="1"
+            items={[
+              {
+                key: '1',
+                label: 'Search',
+                children: (
+                  <>
+                    <MovieSearchBar createRequest={this.createRequest} query={searchQuery} />
+                    <div className="movie-content">
+                      {searchLoading ? <Spinner /> : null}
+                      {searchError ? <ErrorIndicator errorText={searchErrorText} /> : null}
+                      {searchHasData ? <MoviesList moviesData={searchMoviesData} allGenres={allGenres} /> : null}
+                    </div>
+                    <div className="paginator">
+                      {searchShowPagin ? (
+                        <Paginator
+                          usePage={searchUsePage}
+                          totalResults={searchTotalResults}
+                          onChangePage={this.changeSearchPage}
+                        />
+                      ) : null}
+                    </div>
+                  </>
+                ),
+              },
+              {
+                key: '2',
+                label: 'Rated',
+                children: (
+                  <>
+                    <div className="movie-content">
+                      {rateLoading ? <Spinner /> : null}
+                      {rateError ? <ErrorIndicator errorText={rateErrorText} /> : null}
+                      {rateHasData ? <MoviesList moviesData={rateMoviesData} allGenres={allGenres} /> : null}
+                    </div>
+                    <div className="paginator">
+                      {rateShowPagin ? (
+                        <Paginator
+                          usePage={rateUsePage}
+                          totalResults={rateTotalResults}
+                          onChangePage={this.changeRatePage}
+                        />
+                      ) : null}
+                    </div>
+                  </>
+                ),
+              },
+            ]}
+            onChange={(activeKey) => this.onChangeTabs(activeKey)}
+          />
         </MdbapiServiceProvider>
       </section>
     );
