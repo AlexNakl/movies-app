@@ -7,13 +7,15 @@ import Spinner from '../Spinner';
 import ErrorIndicator from '../ErrorIndicator';
 import MovieSearchBar from '../MovieSearchBar';
 import Paginator from '../Pagination';
-import MdbApiServices from '../../services/mdbApiServices';
+import MdbApiBaseServices from '../../services/mdbApiBaseServices';
+import MdbApiSessionServices from '../../services/mdbApiSessionServices';
 import { MdbapiServiceProvider } from '../../context/mdbApi-service-context';
 
 export default class App extends Component {
   constructor() {
     super();
-    this.MdbApi = new MdbApiServices();
+    this.MdbApiBase = new MdbApiBaseServices();
+    this.MdbApiSession = new MdbApiSessionServices();
     this.state = {
       searchMoviesData: [],
       rateMoviesData: [],
@@ -33,20 +35,31 @@ export default class App extends Component {
   }
 
   componentDidMount() {
-    this.MdbApi.createGuestSession();
-    this.MdbApi.getGenres().then((res) => {
-      this.setState({
-        allGenres: res,
+    this.MdbApiSession.createGuestSession().catch((err) => {
+      console.error(err, err.message);
+      this.onSearchError(err);
+    });
+    this.MdbApiBase.getGenres()
+      .then((res) => {
+        this.setState({
+          allGenres: res,
+        });
+      })
+      .catch((err) => {
+        console.error(err, err.message);
+        this.onSearchError(err);
       });
+    this.MdbApiSession.getAllGuestSession().catch((err) => {
+      console.error(err, err.message);
+      this.onSearchError(err);
     });
   }
 
   componentDidUpdate(prevProps, prevState) {
     const { searchQuery, searchUsePage } = this.state;
+
     if (searchQuery !== prevState.searchQuery || searchUsePage !== prevState.searchUsePage) {
-      this.MdbApi.getResources(
-        `&language=en-US&page=1&include_adult=false&query=${encodeURIComponent(searchQuery)}&page=${searchUsePage}`
-      )
+      this.MdbApiBase.getResources(searchQuery, searchUsePage)
         .then((body) => {
           this.setState({
             searchMoviesData: body.results,
@@ -62,6 +75,18 @@ export default class App extends Component {
     if (err.message === 'Failed to fetch') {
       this.setState({
         searchErrorText: 'Check your internet connection.',
+      });
+    } else if (err.message === 'Failed to create guest room.') {
+      this.setState({
+        searchErrorText: 'Failed to create guest room. Try refreshing the page.',
+      });
+    } else if (err.message === 'Failed to get genre list.') {
+      this.setState({
+        searchErrorText: 'Failed to get genre list. Try refreshing the page.',
+      });
+    } else if (err.message === 'Failed to get guest datas.') {
+      this.setState({
+        searchErrorText: 'Failed to get guest datas. Try refreshing the page.',
       });
     } else {
       this.setState({
@@ -108,7 +133,7 @@ export default class App extends Component {
   };
 
   changeRatePage = (newPage) => {
-    this.MdbApi.getGuestSession(`&language=en-US&sort_by=created_at.asc&page=${newPage}`)
+    this.MdbApiSession.getGuestSession(newPage)
       .then((body) => {
         this.setState({
           rateMoviesData: body.results,
@@ -125,9 +150,9 @@ export default class App extends Component {
   };
 
   onChangeTabs = (activeKey) => {
-    const { rateUsePage } = this.state;
     if (activeKey === '2') {
-      this.MdbApi.getGuestSession(`&language=en-US&sort_by=created_at.asc&page=${rateUsePage}`)
+      const { rateUsePage } = this.state;
+      this.MdbApiSession.getGuestSession(rateUsePage)
         .then((body) => {
           this.setState({
             rateMoviesData: body.results,
@@ -141,6 +166,28 @@ export default class App extends Component {
         rateLoading: true,
       });
     }
+  };
+
+  refreshMoviesData = (movieId, rating) => {
+    const { searchMoviesData, rateMoviesData } = this.state;
+    const newArrSearch = JSON.parse(JSON.stringify(searchMoviesData));
+    const newArrRate = JSON.parse(JSON.stringify(rateMoviesData));
+
+    newArrSearch.forEach((movie, index) => {
+      if (movie.id === movieId) {
+        newArrSearch[index].rating = rating;
+      }
+    });
+    newArrRate.forEach((movie, index) => {
+      if (movie.id === movieId) {
+        newArrRate[index].rating = rating;
+      }
+    });
+
+    this.setState({
+      searchMoviesData: newArrSearch,
+      rateMoviesData: newArrRate,
+    });
   };
 
   render() {
@@ -169,7 +216,7 @@ export default class App extends Component {
 
     return (
       <section className="movie-app">
-        <MdbapiServiceProvider value={this.MdbApi}>
+        <MdbapiServiceProvider value={this.MdbApiSession}>
           <Tabs
             defaultActiveKey="1"
             items={[
@@ -182,7 +229,13 @@ export default class App extends Component {
                     <div className="movie-content">
                       {searchLoading ? <Spinner /> : null}
                       {searchError ? <ErrorIndicator errorText={searchErrorText} /> : null}
-                      {searchHasData ? <MoviesList moviesData={searchMoviesData} allGenres={allGenres} /> : null}
+                      {searchHasData ? (
+                        <MoviesList
+                          moviesData={searchMoviesData}
+                          allGenres={allGenres}
+                          refreshMoviesData={this.refreshMoviesData}
+                        />
+                      ) : null}
                     </div>
                     <div className="paginator">
                       {searchShowPagin ? (
@@ -204,7 +257,13 @@ export default class App extends Component {
                     <div className="movie-content">
                       {rateLoading ? <Spinner /> : null}
                       {rateError ? <ErrorIndicator errorText={rateErrorText} /> : null}
-                      {rateHasData ? <MoviesList moviesData={rateMoviesData} allGenres={allGenres} /> : null}
+                      {rateHasData ? (
+                        <MoviesList
+                          moviesData={rateMoviesData}
+                          allGenres={allGenres}
+                          refreshMoviesData={this.refreshMoviesData}
+                        />
+                      ) : null}
                     </div>
                     <div className="paginator">
                       {rateShowPagin ? (

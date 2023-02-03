@@ -5,7 +5,7 @@ import './movieSearchBar.css';
 
 function MovieSearchBar({ createRequest, query }) {
   const onRequestChange = (text) => {
-    if (text) {
+    if (text && text !== query) {
       createRequest(text);
     }
   };

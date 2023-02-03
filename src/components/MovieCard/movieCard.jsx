@@ -19,6 +19,7 @@ function MovieCard({
   rating,
   genresIds,
   allGenres,
+  refreshMoviesData,
 }) {
   const mainPath = 'https://image.tmdb.org/t/p/original';
   const allPath = posterPath !== null ? `${mainPath}${posterPath}` : img;
@@ -27,7 +28,7 @@ function MovieCard({
 
   return (
     <MdbapiServiceConsumer>
-      {({ rateMovie }) => (
+      {({ rateMovie, setNewRateMovie }) => (
         <div className="wraper-card">
           <div className="img-container">
             <img src={allPath} alt="Movie poster" />
@@ -54,9 +55,14 @@ function MovieCard({
               <Rate
                 allowHalf
                 count={10}
-                defaultValue={rating}
+                defaultValue={0}
+                value={rating}
                 style={{ fontSize: 17 }}
-                onChange={(value) => rateMovie(String(id), value)}
+                onChange={(value) => {
+                  setNewRateMovie(String(id), value);
+                  rateMovie(String(id), value);
+                  refreshMoviesData(id, value);
+                }}
               />
             </div>
           </div>
@@ -76,6 +82,7 @@ MovieCard.defaultProps = {
   movieReleaseDate: '',
   movieOverview: '',
   allGenres: {},
+  refreshMoviesData: () => {},
 };
 
 MovieCard.propTypes = {
@@ -88,6 +95,7 @@ MovieCard.propTypes = {
   movieOverview: PropTypes.string,
   genresIds: PropTypes.arrayOf(PropTypes.number),
   allGenres: PropTypes.objectOf(PropTypes.string),
+  refreshMoviesData: PropTypes.func,
 };
 
 export default MovieCard;
